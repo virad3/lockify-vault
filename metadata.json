@@ -1,0 +1,5 @@
+{
+  "name": "Lockify",
+  "description": "Lockify - A secure, modern vault for managing your passwords and secrets. Features client-side AES-256 encryption and a premium UI.",
+  "requestFramePermissions": []
+}
