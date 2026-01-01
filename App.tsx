@@ -8,7 +8,9 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { auth } from './services/firebase';
 
@@ -107,6 +109,19 @@ export default function App() {
       if (err.code === 'auth/weak-password') msg = "Password should be at least 6 characters";
       showToast(msg, 'error');
       setAuthLoading(false); // Only manual reset needed on error
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setAuthLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      showToast("Signed in with Google");
+    } catch (error: any) {
+      console.error("Google login error", error);
+      showToast("Failed to sign in with Google", "error");
+      setAuthLoading(false);
     }
   };
 
@@ -233,7 +248,15 @@ export default function App() {
   // --- Views ---
 
   if (!user && !authLoading) {
-    return <AuthScreen isLogin={isLoginView} onToggle={() => setIsLoginView(!isLoginView)} onSubmit={handleAuth} isLoading={authLoading} />;
+    return (
+      <AuthScreen 
+        isLogin={isLoginView} 
+        onToggle={() => setIsLoginView(!isLoginView)} 
+        onSubmit={handleAuth} 
+        onGoogleLogin={handleGoogleLogin}
+        isLoading={authLoading} 
+      />
+    );
   }
   
   if (authLoading && !user) {
@@ -394,7 +417,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: any) => (
   </button>
 );
 
-const AuthScreen = ({ isLogin, onToggle, onSubmit, isLoading }: any) => {
+const AuthScreen = ({ isLogin, onToggle, onSubmit, onGoogleLogin, isLoading }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -407,7 +430,7 @@ const AuthScreen = ({ isLogin, onToggle, onSubmit, isLoading }: any) => {
           </div>
         </div>
         <h2 className="text-2xl font-bold text-center text-slate-900 dark:text-white mb-2">
-          {isLogin ? 'Welcome Back' : 'Create Account'}
+          {isLogin ? 'Lockify' : 'Create Account'}
         </h2>
         <p className="text-center text-slate-500 dark:text-slate-400 mb-8">
           {isLogin ? 'Enter your email and password to continue.' : 'Setup your secure digital vault account.'}
@@ -434,6 +457,30 @@ const AuthScreen = ({ isLogin, onToggle, onSubmit, isLoading }: any) => {
             {isLogin ? 'Login' : 'Create Account'}
           </Button>
         </form>
+
+        <div className="mt-4 flex flex-col gap-4">
+            <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white dark:bg-slate-900 px-2 text-slate-500">
+                    Or continue with
+                    </span>
+                </div>
+            </div>
+            <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={onGoogleLogin}
+                className="w-full flex items-center justify-center"
+            >
+                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                </svg>
+                Google
+            </Button>
+        </div>
 
         <div className="mt-6 text-center text-sm">
           <span className="text-slate-500 dark:text-slate-400">
